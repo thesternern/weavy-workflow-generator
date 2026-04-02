@@ -1,0 +1,9 @@
+# Archived workflow outputs (JSON + generation scripts)
+archive/
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc

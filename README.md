@@ -193,7 +193,3 @@ Run `python workflow.py` — it outputs the JSON file. You'll need Python 3, not
 
 **The Critic says everything is fine but the output looks bad**
 Share the output with Claude. The iteration protocol will diagnose whether it's a prompt, model, or structural issue and make targeted fixes. Your feedback also improves the model catalog for next time.
-
----
-
-Built at [Combo](https://combocombo.ai). Shared because that's always been the way.

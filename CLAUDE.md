@@ -10,6 +10,7 @@ You are the orchestration layer for a modular Weavy (yambo.ai) workflow generati
 |------|---------|
 | `core/SKILL-CORE.md` | Slash commands, structural rules, edge builder, color palette, node references, boilerplate |
 | `core/NODE-BUILDERS.md` | All Python builder functions (make_file_node through make_group_node) |
+| `core/PLATFORM-TOOLS.md` | Weavy built-in editing tools, node categories, platform features, non-model nodes |
 | `models/MODEL-CATALOG.md` | Experience-driven model catalog (Claims/Reality/Best For/Avoid For/Use Instead/Gotchas/Optimal Params) |
 | `patterns/PATTERNS.md` | Workflow architecture patterns: Basic (A-E), Realism (F-H), Review (K-M), Feedback (N, Q) |
 | `prompts/CREATIVE-ROLES.md` | LLM persona definitions with system prompts |
@@ -29,6 +30,7 @@ Load files based on context. Do not load everything by default.
 | `/iterate` | + `patterns/PATTERNS.md`, `prompts/CREATIVE-ROLES.md` |
 | Workflow contains LLM nodes | + `prompts/CREATIVE-ROLES.md` |
 | Realism detected (see triggers below) | + `prompts/REALISM-GUIDE.md` |
+| Non-model editing tools needed | + `core/PLATFORM-TOOLS.md` |
 | Post-generation | + `quality/QA-PROTOCOL.md` |
 
 ---
@@ -44,9 +46,10 @@ Load files based on context. Do not load everything by default.
 5. Ask clarifying questions if needed (model choice, number of variants, single-shot vs. iterate).
 6. If workflow has LLM nodes, load `prompts/CREATIVE-ROLES.md` for persona/system prompt content.
 7. **Generate** Python script using builders from NODE-BUILDERS.md. Run it. Output JSON.
-8. **Run structural QA** from QA-PROTOCOL.md Section 1.
-9. **Spawn CRITIC** sub-agent (see below).
-10. Deliver JSON + QA summary.
+8. **Append feedback loops**: Every image model output MUST have a Pattern N (Image Feedback Loop). Every Kling video output MUST have a Pattern Q (Video Feedback Loop). Use `build_image_feedback_loop()` and `build_video_feedback_loop()` helpers from NODE-BUILDERS.md. This is not optional — feedback loops are a standard part of every generated workflow.
+9. **Run structural QA** from QA-PROTOCOL.md Section 1.
+10. **Spawn CRITIC** sub-agent (see below).
+11. Deliver JSON + QA summary.
 
 ### `/add` + pasted JSON
 

@@ -43,6 +43,11 @@ Handle names must match the expected handles for each node type:
 ### Layout
 - [ ] Node spacing follows conventions (~600px X between columns, ~400px Y between rows)
 
+### Feedback Loops
+- [ ] Every image model output node has a Pattern N (Image Feedback Loop) connected
+- [ ] Every Kling video output node has a Pattern Q (Video Feedback Loop) connected
+- [ ] Feedback loops include: original brief Text, user feedback Text, Concat, Refiner LLM with system prompt, and the output model
+
 ### Prompt Content
 - [ ] System prompts are in English, detailed, and structured
 - [ ] Image prompts are plain text only (no markdown formatting)
@@ -122,7 +127,7 @@ The preferred approach. The workflow itself contains feedback nodes the user edi
 - User re-runs — no JSON editing required
 - See `patterns/PATTERNS.md` → Pattern Q
 
-**Best practice:** When building new workflows with `/workflow`, always ask if the user wants a feedback loop appended. For any workflow involving Kling video, Pattern Q should be the default.
+**MANDATORY:** Every `/workflow` generation MUST include feedback loops on all image and video output nodes. Use Pattern N (Image Feedback Loop) for every image model output and Pattern Q (Video Feedback Loop) for every Kling video output. Do not ask — include them by default. If the user explicitly requests no feedback loops, they can be omitted, but the default is always to include them.
 
 ### External Fixes (agent-assisted)
 

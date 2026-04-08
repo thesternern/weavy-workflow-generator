@@ -112,6 +112,7 @@ Append a feedback loop pattern to an existing workflow so the user can iterate o
 11. **Node names**: UPPERCASE for main nodes, no emojis in node names (emojis OK in group names)
 12. **`version: 3`** on all nodes
 13. **Unknown AI models** → ask the user to `/add` a real node first
+14. **Weavy paste limit: 50,000 characters.** Always output JSON with `separators=(',', ':')` (minified, no whitespace). If a workflow exceeds 50K even minified, split it into separately-pasteable stages and document the connection points between them.
 
 ---
 
@@ -288,7 +289,9 @@ edges.append(make_edge(ID_FILE, ID_ROUTER, "file", "in", "Yambo_Blue", "Yambo_Or
 
 # === Export ===
 template = {"nodes": nodes, "edges": edges}
+output = json.dumps(template, ensure_ascii=False, separators=(',', ':'))
+assert len(output) <= 50000, f"OVER PASTE LIMIT: {len(output)} chars — split into stages"
 with open("/mnt/user-data/outputs/workflow.json", "w", encoding="utf-8") as f:
-    json.dump(template, f, ensure_ascii=False, indent=2)
-print(f"Done: {len(nodes)} nodes, {len(edges)} edges")
+    f.write(output)
+print(f"Done: {len(nodes)} nodes, {len(edges)} edges, {len(output)} chars")
 ```

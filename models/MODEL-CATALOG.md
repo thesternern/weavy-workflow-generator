@@ -217,17 +217,19 @@ Experience-driven model selection guide for Weavy workflows. Model descriptions 
 **Use instead:** "For general-purpose image generation with full prompt control, use NB Pro or Flux. Higgsfield is a style-first model, not a general-purpose one."
 
 **Gotchas:**
-- Style presets are the product -- without them it's a standard generator. Always pick a style.
+- **Native Weavy integration, NOT a fal.ai import.** `data.model` must be `{"name": "higgsfield_t2i"}` only — no `service` or `version` fields. `data.kind.model` must be `{"type": "predefined", "name": "higgsfield_t2i", "description": "..."}` — no `version` or `service`. Adding `service: "fal_imported"` triggers fal.ai app ID validation which rejects the model name.
+- Style presets are the product -- without them it's a standard generator. Always pick a style. 80+ presets available (see builder for full list).
 - `enhance_prompt` may override carefully crafted prompts -- test with false for precise control
 - `image_reference` is style transfer, not composition blending. It copies the aesthetic, not the layout.
 - `style_strength` at 1.0 (default) applies full preset. Dial back to 0.5-0.7 for subtler effects.
+- `style_strength` constraint type is `float_with_limits`, not `number` — differs from other models.
 - Output is always image, no video output despite Higgsfield also having a video model.
 
 **Optimal params:**
-- Style: Choose based on brief aesthetic. Notable production presets: `Realistic`, `FashionShow`, `90's Editorial`, `Quiet luxury`, `Tokyo Streetstyle`
+- Style: Choose based on brief aesthetic. Notable production presets: `Realistic`, `FashionShow`, `90's Editorial`, `Quiet luxury`, `Tokyo Streetstyle`, `2000s Cam`, `Indie sleaze`, `Overexposed`
 - Style strength: `1.0` for full preset commitment, `0.5-0.7` for blend with prompt direction
 - enhance_prompt: `true` for casual use, `false` when prompt precision matters
-- Resolution: `1696x960` (default) for landscape, `960x1696` for portrait
+- Resolution: `1696x960` (default) for landscape, `960x1696` for portrait, `1536x1536` for square
 
 ---
 

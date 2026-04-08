@@ -496,40 +496,44 @@ def make_nb2_node(node_id, name, prompt_ref, image_1_ref, x, y, resolution="1K",
 80+ style presets. Optional image_reference for style transfer.
 
 ```python
+HIGGSFIELD_STYLES = ["0.5 Outfit","0.5 Selfie","2000s Cam","2000s Fashion","360 cam","505room","7\\","90's Editorial","90s Grain","Amalfi Summer","Angel Wings","Artwork","Avant-garde","Babydoll MakeUp","Bimbocore","Bleached Brows","CCTV","Coquette core","Creatures","Crossing the street","DigitalCam","Duplicate","Eating Food","Elevator Mirror","Escalator","Fairycore","FashionShow","Fisheye","Flight mode","Foggy Morning","Gallery","General","Geominimal","Giant Accessory","Giant People","Glazed doll skin makeup","Glitch","Gorpcore","Graffiti","Grillz Selfie","Grunge","HairClips","Help It's Too Big","iPhone","Indie sleaze","Invertethereal","Japandi","Library","Long legs","Medieval","Mixed Media","Movie","Mt. Fuji","Nail Check","Night Beach","Object Makeup","Office beach","Overexposed","Paper Face","PixeletedFace","Quiet luxury","Rainy Day","Realistic","RingSelfie","Sand","Selfcare","Shoe Check","Sitting on the Street","Spotlight","Street view","Subway","Sunbathing","Sunset beach","Swords Hill","Through The Glass","Tokyo Streetstyle","Tumblr","Vintage PhotoBooth","Y2K","Y2K Posters"]
+HIGGSFIELD_RESOLUTIONS = ["1152x2048","2048x1152","2048x1536","1536x2048","1344x2016","2016x1344","960x1696","1536x1536","1536x1152","1696x960","1152x1536","1088x1632","1632x1088"]
+
 def make_higgsfield_image_node(node_id, name, prompt_ref, image_ref, x, y,
                                 width_and_height="1696x960", style="General", style_strength=1, enhance_prompt=True):
     inputs = [
-        [{"id": "prompt", "title": "Prompt", "description": "Text prompt for image generation.", "validTypes": ["text"], "required": True}, prompt_ref],
-        [{"id": "image_reference", "title": "image_reference", "description": "Reference image for style transfer", "validTypes": ["image"], "required": False}, image_ref],
+        [{"id": "prompt", "title": "", "description": "Text prompt for image generation", "validTypes": ["text"], "required": True}, prompt_ref],
+        [{"id": "image_reference", "title": "Reference Image", "description": "This image will be used a source for image generation.", "validTypes": ["image"], "required": False}, image_ref],
     ]
     input_handles = {
-        "prompt": {"id": uid(), "type": "text", "label": "prompt", "order": 0, "format": "text", "required": True, "description": "Text prompt for image generation."},
-        "image_reference": {"id": uid(), "type": "image", "label": "image_reference", "order": 1, "format": "uri", "required": False, "description": "Reference image for style transfer"},
+        "prompt": {"id": uid(), "type": "text", "order": 0, "format": "text", "required": True, "description": "Text prompt for image generation"},
+        "image_reference": {"id": uid(), "type": "image", "label": "Reference Image", "order": 1, "format": "uri", "required": False, "description": "This image will be used a source for image generation."},
     }
     parameters = [
-        [{"id": "width_and_height", "title": "Width and Height", "description": "Image dimensions.",
-          "constraint": {"type": "enum", "options": ["1152x2048","1200x1600","1344x1792","1536x1536","1696x960","960x1696","1792x1344","1600x1200","2048x1152","1024x1024","768x1344","1344x768","832x1216"]},
+        [{"id": "width_and_height", "title": "Resolution", "description": "Resolution of the generated image",
+          "constraint": {"type": "enum", "options": HIGGSFIELD_RESOLUTIONS},
           "defaultValue": {"type": "string", "value": "1696x960"}},
          {"type": "value", "data": {"type": "string", "value": width_and_height}}],
-        [{"id": "style", "title": "Style", "description": "Style preset to apply.",
-          "constraint": {"type": "enum", "options": ["General","Realistic","2000s Cam","2000s Fashion","Indie sleaze","Y2K","Grunge","90's Editorial","90s Grain","Vintage PhotoBooth","Tumblr","FashionShow","Gorpcore","Quiet luxury","Tokyo Streetstyle","iPhone","DigitalCam","Overexposed","Fisheye","CCTV"]},
+        [{"id": "style", "title": "Style", "description": "Higgsfield's style preset",
+          "constraint": {"type": "enum", "options": HIGGSFIELD_STYLES},
           "defaultValue": {"type": "string", "value": "General"}},
          {"type": "value", "data": {"type": "string", "value": style}}],
-        [{"id": "style_strength", "title": "Style Strength", "description": "How strongly to apply the style preset.",
-          "constraint": {"type": "number", "min": 0, "max": 1}, "defaultValue": {"type": "float", "value": 1}},
+        [{"id": "style_strength", "title": "Style Strength",
+          "description": "Controls how intensely the chosen style preset is applied. Higher values (0.8-1.0) create dramatic stylistic effects, while lower values (0.3-0.5) apply the style more subtly.",
+          "constraint": {"type": "float_with_limits", "min": 0, "max": 1}, "defaultValue": {"type": "float", "value": 1}},
          {"type": "value", "data": {"type": "float", "value": style_strength}}],
-        [{"id": "enhance_prompt", "title": "Enhance Prompt", "description": "Automatically enhance the prompt.",
+        [{"id": "enhance_prompt", "title": "Enhance Prompt", "description": "Enhance the prompt",
           "constraint": {"type": "boolean"}, "defaultValue": {"type": "boolean", "value": True}},
          {"type": "value", "data": {"type": "boolean", "value": enhance_prompt}}],
-        [{"id": "seed", "title": "Seed", "description": "Seed value.",
-          "constraint": {"type": "seed"}, "defaultValue": {"type": "seed", "value": {"seed": 1, "isRandom": False}}},
-         {"type": "value", "data": {"type": "seed", "value": {"seed": 0, "isRandom": True}}}],
+        [{"id": "seed", "title": "Seed", "description": "Seed for the generated image",
+          "constraint": {"type": "seed"}, "defaultValue": {"type": "seed", "value": {"seed": 42, "isRandom": True}}},
+         {"type": "value", "data": {"type": "seed", "value": {"seed": 42, "isRandom": True}}}],
     ]
     outputs = [{"id": "result", "title": "result", "description": "Result image", "dataType": "image"}]
     kind_data = {
         "type": "wildcard",
-        "model": {"type": "predefined", "name": "higgsfield_t2i", "version": "higgsfield_t2i",
-                  "service": "fal_imported", "description": "Higgsfield's image generation model"},
+        "model": {"type": "predefined", "name": "higgsfield_t2i",
+                  "description": "Higgsfield's image generation model"},
         "inputs": inputs, "parameters": parameters, "outputs": outputs
     }
     return {
@@ -540,20 +544,19 @@ def make_higgsfield_image_node(node_id, name, prompt_ref, image_ref, x, y,
             "name": name, "description": "Higgsfield's image generation model", "color": "Red",
             "label": None,
             "menu": {"icon": "EmojiObjectsIcon", "isModel": True, "displayName": "Higgsfield Image"},
-            "model": {"name": "higgsfield_t2i", "service": "fal_imported", "version": "higgsfield_t2i"},
-            "params": {"prompt": "", "width_and_height": width_and_height, "style": style, "style_strength": style_strength, "enhance_prompt": enhance_prompt, "seed": {"seed": 0, "isRandom": True}},
+            "model": {"name": "higgsfield_t2i"},
+            "params": {"seed": {"seed": 42, "isRandom": True}, "style": style, "enhance_prompt": enhance_prompt, "style_strength": style_strength, "width_and_height": width_and_height},
             "schema": {
-                "seed": {"type": "seed", "title": "Seed", "required": False, "description": "Seed value for random number generator."},
-                "width_and_height": {"type": "enum", "title": "Width and Height", "default": "1696x960",
-                    "options": ["1152x2048","1200x1600","1344x1792","1536x1536","1696x960","960x1696","1792x1344","1600x1200","2048x1152","1024x1024","768x1344","1344x768","832x1216"],
-                    "required": False, "description": "Image dimensions."},
-                "style": {"type": "enum", "title": "Style", "default": "General",
-                    "options": ["General","Realistic","2000s Cam","2000s Fashion","Indie sleaze","Y2K","Grunge","90's Editorial","90s Grain","Vintage PhotoBooth","Tumblr","FashionShow","Gorpcore","Quiet luxury","Tokyo Streetstyle","iPhone","DigitalCam","Overexposed","Fisheye","CCTV"],
-                    "required": False, "description": "Style preset to apply."},
-                "style_strength": {"type": "number", "title": "Style Strength", "default": 1, "min": 0, "max": 1,
-                    "required": False, "description": "How strongly to apply the style preset."},
-                "enhance_prompt": {"type": "boolean", "title": "Enhance Prompt", "default": True,
-                    "required": False, "description": "Automatically enhance the prompt."}
+                "seed": {"type": "seed", "order": 6, "title": "Seed", "default": {"seed": 42, "isRandom": True},
+                    "required": False, "description": "Seed for the generated image"},
+                "width_and_height": {"type": "enum", "order": 0, "title": "Resolution", "default": "1696x960",
+                    "options": HIGGSFIELD_RESOLUTIONS, "required": False, "description": "Resolution of the generated image"},
+                "style": {"type": "enum", "order": 1, "title": "Style", "default": "General",
+                    "options": HIGGSFIELD_STYLES, "description": "Higgsfield's style preset"},
+                "style_strength": {"max": 1, "min": 0, "type": "number", "order": 2, "title": "Style Strength", "default": 1,
+                    "description": "Controls how intensely the chosen style preset is applied."},
+                "enhance_prompt": {"type": "boolean", "order": 3, "title": "Enhance Prompt", "default": True,
+                    "description": "Enhance the prompt"}
             },
             "version": 3, "kind": kind_data,
             "generations": [], "selectedIndex": 0, "cameraLocked": False,

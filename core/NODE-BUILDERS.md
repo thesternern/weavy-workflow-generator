@@ -1655,45 +1655,71 @@ def build_image_feedback_loop(router_id, brief_text, system_prompt_text, x_start
 
 ### build_video_feedback_loop
 
-Generates the nodes and edges for Pattern Q (Video Feedback Loop). Returns a list of nodes and edges to append to your workflow. The first frame must come from upstream (file upload, router, or image model output).
+Generates the nodes and edges for Pattern Q (Video Feedback Loop). Works with any prompt-driven video model: Kling, Wan, Veo 3.1, LTX 2, or Higgsfield Video. Returns a list of nodes and edges to append to your workflow.
+
+**Model capabilities in the feedback loop:**
+
+| Model | Has first frame? | Has negative prompt? | Image input handle | Neg prompt handle | Builder |
+|-------|-------------------|----------------------|--------------------|-------------------|---------|
+| `kling` | Yes | Yes | `image` | `negative_prompt` | `make_kling_node()` |
+| `wan` | Yes | Yes | `image` | `negative_prompt` | `make_wan_node()` |
+| `veo3` | No | Yes | — | `negative_prompt` | `make_veo3_node()` |
+| `ltx2` | Optional | No | `first_frame_image` | — | `make_ltx2_node()` |
+| `higgsfield_video` | Yes | No | `image` | — | `make_higgsfield_video_node()` |
 
 ```python
 def build_video_feedback_loop(first_frame_id, first_frame_output, first_frame_type, motion_brief_text,
                                system_prompt_text, x_start, y_start,
-                               kling_model="3.0 Pro", duration=5, cfg_scale=0.5, aspect_ratio="16:9"):
+                               video_model="kling", **model_params):
     """
-    Builds Pattern Q: Video Feedback Loop.
+    Builds Pattern Q: Video Feedback Loop for any prompt-driven video model.
     
-    first_frame_id: ID of the node providing the first frame
+    first_frame_id: ID of the node providing the first frame (ignored for veo3)
     first_frame_output: output handle name of that node ("out" for Router, "result" for NB/Flux, "file" for File)
     first_frame_type: edge source type ("any" for Router, "image" for model)
     motion_brief_text: the original motion/video brief text
     system_prompt_text: MOTION REFINER system prompt (from CREATIVE-ROLES.md)
     x_start, y_start: top-left position for the feedback loop block
+    video_model: one of "kling", "wan", "veo3", "ltx2", "higgsfield_video"
+    **model_params: model-specific parameters passed through to the builder:
+        kling:            kling_model="3.0 Pro", duration=5, cfg_scale=0.5, aspect_ratio="16:9"
+        wan:              resolution="1080p", duration=5, enable_prompt_expansion=True
+        veo3:             model="Fast", version="3.1", duration="8s", resolution="720p", aspect_ratio="16:9"
+        ltx2:             model="ltx-2-fast", fps=25, duration=6, resolution="1920x1080"
+        higgsfield_video: model="dop-lite", motion="Cinematic", enhance_prompt=True
     
     Returns: (nodes, edges, node_ids)
-        node_ids is a dict with keys: motion_brief, video_feedback, concat, sys_prompt, refiner, neg_prompt, kling
+        node_ids is a dict with keys: motion_brief, video_feedback, concat, sys_prompt, refiner, video_output
+        Plus neg_prompt key when the model supports negative prompts (kling, wan, veo3)
     """
+    
+    # Model capability flags
+    HAS_NEG_PROMPT = video_model in ("kling", "wan", "veo3")
+    HAS_FIRST_FRAME = video_model != "veo3"  # veo3 is text-to-video only
+    IMAGE_INPUT_HANDLE = "first_frame_image" if video_model == "ltx2" else "image"
+    
     ids = {
         "motion_brief": uid(),
         "video_feedback": uid(),
         "concat": uid(),
         "sys_prompt": uid(),
         "refiner": uid(),
-        "neg_prompt": uid(),
-        "kling": uid(),
+        "video_output": uid(),
     }
+    if HAS_NEG_PROMPT:
+        ids["neg_prompt"] = uid()
     
     nodes = []
     edges = []
     
-    # Build the first frame reference
-    frame_ref = {"nodeId": first_frame_id, "outputId": first_frame_output, "file": {}}
+    # Build the first frame reference (only used if model accepts image input)
+    frame_ref = {"nodeId": first_frame_id, "outputId": first_frame_output, "file": {}} if HAS_FIRST_FRAME else None
     
     # Column 1: Text inputs (x_start)
     nodes.append(make_string_node(ids["motion_brief"], "MOTION BRIEF", motion_brief_text, x_start, y_start))
     nodes.append(make_string_node(ids["video_feedback"], "VIDEO FEEDBACK", "", x_start, y_start + 400))
-    nodes.append(make_string_node(ids["neg_prompt"], "NEGATIVE PROMPT", "", x_start, y_start + 800))
+    if HAS_NEG_PROMPT:
+        nodes.append(make_string_node(ids["neg_prompt"], "NEGATIVE PROMPT", "", x_start, y_start + 800))
     
     # Column 2: Concat (x_start + 600)
     concat_refs = [
@@ -1716,12 +1742,44 @@ def build_video_feedback_loop(first_frame_id, first_frame_output, first_frame_ty
     refiner_node["data"]["params"]["temperature"] = 0.3
     nodes.append(refiner_node)
     
-    # Column 4: Kling (x_start + 1800)
-    kling_prompt_ref = {"nodeId": ids["refiner"], "outputId": "text", "string": ""}
-    neg_ref = {"nodeId": ids["neg_prompt"], "outputId": "text", "string": ""}
-    nodes.append(make_kling_node(ids["kling"], "VIDEO OUTPUT", kling_prompt_ref, frame_ref, None, neg_ref, [],
-                                  x_start + 1800, y_start + 200,
-                                  kling_model=kling_model, duration=duration, cfg_scale=cfg_scale, aspect_ratio=aspect_ratio))
+    # Column 4: Video Model (x_start + 1800)
+    video_prompt_ref = {"nodeId": ids["refiner"], "outputId": "text", "string": ""}
+    neg_ref = {"nodeId": ids["neg_prompt"], "outputId": "text", "string": ""} if HAS_NEG_PROMPT else None
+    
+    if video_model == "kling":
+        nodes.append(make_kling_node(ids["video_output"], "VIDEO OUTPUT", video_prompt_ref, frame_ref, None, neg_ref, [],
+                                      x_start + 1800, y_start + 200,
+                                      kling_model=model_params.get("kling_model", "3.0 Pro"),
+                                      duration=model_params.get("duration", 5),
+                                      cfg_scale=model_params.get("cfg_scale", 0.5),
+                                      aspect_ratio=model_params.get("aspect_ratio", "16:9")))
+    elif video_model == "wan":
+        nodes.append(make_wan_node(ids["video_output"], "VIDEO OUTPUT", video_prompt_ref, frame_ref, None, None, neg_ref,
+                                    x_start + 1800, y_start + 200,
+                                    resolution=model_params.get("resolution", "1080p"),
+                                    duration=model_params.get("duration", 5),
+                                    enable_prompt_expansion=model_params.get("enable_prompt_expansion", True)))
+    elif video_model == "veo3":
+        nodes.append(make_veo3_node(ids["video_output"], "VIDEO OUTPUT", video_prompt_ref, neg_ref,
+                                     x_start + 1800, y_start + 200,
+                                     model=model_params.get("model", "Fast"),
+                                     version=model_params.get("version", "3.1"),
+                                     duration=model_params.get("duration", "8s"),
+                                     resolution=model_params.get("resolution", "720p"),
+                                     aspect_ratio=model_params.get("aspect_ratio", "16:9")))
+    elif video_model == "ltx2":
+        nodes.append(make_ltx2_node(ids["video_output"], "VIDEO OUTPUT", video_prompt_ref, frame_ref,
+                                     x_start + 1800, y_start + 200,
+                                     model=model_params.get("model", "ltx-2-fast"),
+                                     fps=model_params.get("fps", 25),
+                                     duration=model_params.get("duration", 6),
+                                     resolution=model_params.get("resolution", "1920x1080")))
+    elif video_model == "higgsfield_video":
+        nodes.append(make_higgsfield_video_node(ids["video_output"], "VIDEO OUTPUT", video_prompt_ref, frame_ref,
+                                                 x_start + 1800, y_start + 200,
+                                                 model=model_params.get("model", "dop-lite"),
+                                                 motion=model_params.get("motion", "Cinematic"),
+                                                 enhance_prompt=model_params.get("enhance_prompt", True)))
     
     # Edges
     # Motion Brief → Concat
@@ -1736,18 +1794,44 @@ def build_video_feedback_loop(first_frame_id, first_frame_output, first_frame_ty
     # System prompt → Refiner
     edges.append(make_edge(ids["sys_prompt"], ids["refiner"], "text", "system_prompt",
                            "Yambo_Green", "Yambo_Purple", "text", "text"))
-    # Refiner → Kling (prompt)
-    edges.append(make_edge(ids["refiner"], ids["kling"], "text", "prompt",
+    # Refiner → Video Model (prompt)
+    edges.append(make_edge(ids["refiner"], ids["video_output"], "text", "prompt",
                            "Yambo_Purple", "Red", "text", "text"))
-    # First frame → Kling (image)
-    edges.append(make_edge(first_frame_id, ids["kling"], first_frame_output, "image",
-                           "Yambo_Orange" if first_frame_type == "any" else "Red", "Red",
-                           first_frame_type, "image"))
-    # Negative prompt → Kling
-    edges.append(make_edge(ids["neg_prompt"], ids["kling"], "text", "negative_prompt",
-                           "Yambo_Green", "Red", "text", "text"))
+    # First frame → Video Model (image) — skip for veo3
+    if HAS_FIRST_FRAME:
+        edges.append(make_edge(first_frame_id, ids["video_output"], first_frame_output, IMAGE_INPUT_HANDLE,
+                               "Yambo_Orange" if first_frame_type == "any" else "Red", "Red",
+                               first_frame_type, "image"))
+    # Negative prompt → Video Model — only for models that support it
+    if HAS_NEG_PROMPT:
+        edges.append(make_edge(ids["neg_prompt"], ids["video_output"], "text", "negative_prompt",
+                               "Yambo_Green", "Red", "text", "text"))
     
     return nodes, edges, ids
+```
+
+**Backward compatibility:** The default `video_model="kling"` preserves the original behavior. Existing callers using the old Kling-specific parameters can switch to keyword args:
+
+```python
+# Old (still works — pass Kling params as keyword args):
+build_video_feedback_loop(router_id, "out", "any", brief, sys_prompt, 2400, 100,
+                           video_model="kling", kling_model="3.0 Pro", duration=5)
+
+# Wan 2.7:
+build_video_feedback_loop(router_id, "out", "any", brief, sys_prompt, 2400, 100,
+                           video_model="wan", resolution="1080p", duration=5)
+
+# Veo 3.1 (no first frame — first_frame_id/output/type are ignored):
+build_video_feedback_loop(None, None, None, brief, sys_prompt, 2400, 100,
+                           video_model="veo3", duration="8s")
+
+# LTX 2 (no negative prompt node generated):
+build_video_feedback_loop(router_id, "out", "any", brief, sys_prompt, 2400, 100,
+                           video_model="ltx2", duration=6)
+
+# Higgsfield Video:
+build_video_feedback_loop(router_id, "out", "any", brief, sys_prompt, 2400, 100,
+                           video_model="higgsfield_video", motion="Dolly In")
 ```
 
 ---

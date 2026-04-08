@@ -175,25 +175,38 @@ The Refiner always works from the stable original brief, so it doesn't drift.
 
 ### Q — Video Feedback Loop
 
-User-driven refinement for Kling video. The first frame is fixed (already perfected via Pattern N or provided directly). Only the motion prompt and negative prompt are refined.
+User-driven refinement for any prompt-driven video model. The first frame is fixed (already perfected via Pattern N or provided directly). Only the motion prompt (and negative prompt, when supported) are refined.
+
+**Applies to:** Kling 3 Pro, Wan 2.7, Veo 3.1, LTX 2, Higgsfield Video — any video model with a prompt input.
+**Does NOT apply to:** Omnihuman V1.5 and Kling Avatar Pro (audio-driven, no prompt to refine).
 
 ```
-FIRST FRAME (file or upstream) ──→ KLING 3 PRO (image input)
+FIRST FRAME (file or upstream) ──→ VIDEO MODEL (image input, if supported)
 
-TEXT (motion brief)     ──→ CONCAT ──→ LLM: MOTION REFINER ──→ KLING 3 PRO (prompt)
+TEXT (motion brief)     ──→ CONCAT ──→ LLM: MOTION REFINER ──→ VIDEO MODEL (prompt)
 TEXT (video feedback)   ──→ CONCAT            ↑
                                        TEXT (system prompt)
 
-TEXT (negative prompt)  ──────────────────────────────────→ KLING 3 PRO (negative_prompt)
+TEXT (negative prompt)  ──────────────────────────────────→ VIDEO MODEL (negative_prompt, if supported)
 ```
-**Use for:** iterating on video output. The user watches the Kling output, writes what's wrong, and re-runs. The MOTION REFINER rewrites the motion prompt. The user edits the negative prompt Text node directly (negatives are additive blocklists — no LLM needed).
+
+**Model-specific notes:**
+| Model | First frame input? | Negative prompt? | Output handle |
+|-------|--------------------|-------------------|---------------|
+| Kling 3 Pro | Yes (`image`) | Yes | `video` |
+| Wan 2.7 | Yes (`image`) | Yes | `video` |
+| Veo 3.1 | No (text-to-video only) | Yes | `result` |
+| LTX 2 | Optional (`first_frame_image`) | No | `video` |
+| Higgsfield Video | Yes (`image`) | No | `video` |
+
+**Use for:** iterating on video output. The user watches the output, writes what's wrong, and re-runs. The MOTION REFINER rewrites the motion prompt. For models with negative prompt support, the user edits the negative prompt Text node directly (negatives are additive blocklists — no LLM needed).
 
 **How the loop works:**
 1. **First run:** Leave the video feedback Text node empty. The Motion Refiner writes the initial motion prompt from the brief.
 2. **Review output:** User watches the video in Weavy.
 3. **Type feedback:** User opens the feedback Text node: *"The runner's arm swing looks robotic, and there's a morph on the sunglasses around 3 seconds"*
-4. **Update negative prompt:** User adds "morphing sunglasses, distorted limbs" to the negative prompt Text node directly.
-5. **Re-run:** The Motion Refiner rewrites the motion prompt addressing the feedback. Kling gets the revised motion prompt + updated negative prompt.
+4. **Update negative prompt (if supported):** User adds "morphing sunglasses, distorted limbs" to the negative prompt Text node directly.
+5. **Re-run:** The Motion Refiner rewrites the motion prompt addressing the feedback. The video model gets the revised motion prompt + updated negative prompt.
 6. **Repeat:** User updates feedback and negative prompt, re-runs until satisfied.
 
 **MOTION REFINER LLM setup:**
@@ -202,4 +215,4 @@ TEXT (negative prompt)  ──────────────────�
 - Image inputs: None (user describes what they saw — no vision needed)
 - System prompt: see `prompts/CREATIVE-ROLES.md` → Motion Refiner role
 
-**Node count:** ~8 nodes (First Frame input, 3x Text for brief+feedback+negative, Concat, LLM + system prompt Text, Kling)
+**Node count:** 7-8 nodes (First Frame input if applicable, 2-3x Text for brief+feedback+negative, Concat, LLM + system prompt Text, Video Model)

@@ -46,7 +46,7 @@ Load files based on context. Do not load everything by default.
 5. Ask clarifying questions if needed (model choice, number of variants, single-shot vs. iterate).
 6. If workflow has LLM nodes, load `prompts/CREATIVE-ROLES.md` for persona/system prompt content.
 7. **Generate** Python script using builders from NODE-BUILDERS.md. Run it. Output JSON.
-8. **Append feedback loops**: Every image model output MUST have a Pattern N (Image Feedback Loop). Every Kling video output MUST have a Pattern Q (Video Feedback Loop). Use `build_image_feedback_loop()` and `build_video_feedback_loop()` helpers from NODE-BUILDERS.md. This is not optional — feedback loops are a standard part of every generated workflow.
+8. **Append feedback loops**: Every image model output MUST have a Pattern N (Image Feedback Loop). Every video model output MUST have a Pattern Q (Video Feedback Loop) — this applies to Kling, Wan, Veo, LTX, and Higgsfield Video, not just Kling. Audio-driven avatar models (Omnihuman, Kling Avatar Pro) are exempt since they have no prompt input to refine. Use `build_image_feedback_loop()` and `build_video_feedback_loop()` helpers from NODE-BUILDERS.md. This is not optional — feedback loops are a standard part of every generated workflow.
 9. **Run structural QA** from QA-PROTOCOL.md Section 1.
 10. **Spawn CRITIC** sub-agent (see below).
 11. Deliver JSON + QA summary.

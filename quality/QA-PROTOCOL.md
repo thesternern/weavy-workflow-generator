@@ -45,7 +45,7 @@ Handle names must match the expected handles for each node type:
 
 ### Feedback Loops
 - [ ] Every image model output node has a Pattern N (Image Feedback Loop) connected
-- [ ] Every Kling video output node has a Pattern Q (Video Feedback Loop) connected
+- [ ] Every video model output node (Kling, Wan, Veo, LTX, Higgsfield) has a Pattern Q (Video Feedback Loop) connected — audio-driven avatars (Omnihuman, Kling Avatar Pro) are exempt
 - [ ] Feedback loops include: original brief Text, user feedback Text, Concat, Refiner LLM with system prompt, and the output model
 
 ### Prompt Content
@@ -127,7 +127,7 @@ The preferred approach. The workflow itself contains feedback nodes the user edi
 - User re-runs — no JSON editing required
 - See `patterns/PATTERNS.md` → Pattern Q
 
-**MANDATORY:** Every `/workflow` generation MUST include feedback loops on all image and video output nodes. Use Pattern N (Image Feedback Loop) for every image model output and Pattern Q (Video Feedback Loop) for every Kling video output. Do not ask — include them by default. If the user explicitly requests no feedback loops, they can be omitted, but the default is always to include them.
+**MANDATORY:** Every `/workflow` generation MUST include feedback loops on all image and video output nodes. Use Pattern N (Image Feedback Loop) for every image model output and Pattern Q (Video Feedback Loop) for every prompt-driven video model output (Kling, Wan, Veo, LTX, Higgsfield Video). Audio-driven avatar models (Omnihuman, Kling Avatar Pro) are exempt since they lack prompt inputs to refine. Do not ask — include them by default. If the user explicitly requests no feedback loops, they can be omitted, but the default is always to include them.
 
 ### External Fixes (agent-assisted)
 

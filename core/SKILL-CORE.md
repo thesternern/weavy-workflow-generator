@@ -55,7 +55,7 @@ Append a feedback loop pattern to an existing workflow so the user can iterate o
 
 1. Ask the user which workflow to extend (or use the current one in context)
 2. For **image**: append Pattern N (Image Feedback Loop) — connects a reference Router, brief Text, feedback Text, Concatenator, IMAGE REFINER LLM, and Image Model
-3. For **video**: append Pattern Q (Video Feedback Loop) — connects a first frame source, motion brief Text, video feedback Text, Concatenator, MOTION REFINER LLM, negative prompt Text, and Kling 3 Pro
+3. For **video**: append Pattern Q (Video Feedback Loop) — connects a first frame source (if supported), motion brief Text, video feedback Text, Concatenator, MOTION REFINER LLM, negative prompt Text (if supported), and the selected video model (Kling, Wan, Veo, LTX, or Higgsfield Video)
 4. Use the `build_image_feedback_loop()` or `build_video_feedback_loop()` helper from NODE-BUILDERS.md
 5. Run structural QA (Section 1)
 6. Deliver updated JSON
@@ -72,9 +72,25 @@ Append a feedback loop pattern to an existing workflow so the user can iterate o
 | **LLM** | `custommodelV2` (any_llm) | Run a language model | `prompt`, `system_prompt`, `image`x14 | `text` (text) | Purple |
 | **NB Pro** | `custommodelV2` (wildcard) | Nano Banana image gen | `prompt`, `image_1` | `result` (image) | Red |
 | **Flux 2 Pro** | `custommodelV2` (wildcard) | Flux image gen | `prompt`, `image_1` | `result` (image) | Red |
-| **Kling 3** | `custommodelV2` (kling) | Video generation | `prompt`, `image`, `end_image`, `negative_prompt`, `element`xN | `video` (video) | Red |
+| **NB 2** | `custommodelV2` (wildcard) | Image gen/edit (Gemini) | `prompt`, `image_1` | `result` (image) | Red |
+| **Higgsfield Image** | `custommodelV2` (wildcard) | Style-preset image gen | `prompt`, `image_reference` | `result` (image) | Red |
+| **Imagen 4** | `custommodelV2` (wildcard) | Text-to-image only | `prompt`, `negative_prompt` | `result` (image) | Red |
+| **Flux Ultra** | `custommodelV2` (flux11_pro_ultra) | Image gen (up to 4MP) | `prompt`, `image_prompt` | `result` (image) | Red |
+| **Seedream V5** | `custommodelV2` (wildcard) | Image gen/edit (ByteDance) | `prompt`, `image_1` | `result` (image) | Red |
+| **Kling 3** | `custommodelV2` (kling) | Video generation | `prompt`, `image`, `end_image_url`, `negative_prompt`, `element`xN | `video` (video) | Red |
+| **Veo 3.1** | `custommodelV2` (wildcard) | Text-to-video + audio | `prompt`, `negative_prompt` | `result` (video) | Red |
+| **Wan 2.7** | `custommodelV2` (wildcard) | Flexible video gen | `prompt`, `image_url`, `end_image_url`, `audio_url`, `negative_prompt` | `video` (video) | Red |
+| **LTX 2** | `custommodelV2` (wildcard) | Fast video gen | `prompt`, `image_uri` | `video` (video) | Red |
+| **Higgsfield Video** | `custommodelV2` (wildcard) | Camera motion on stills | `prompt`, `image` | `video` (video) | Red |
+| **Omnihuman V1.5** | `custommodelV2` (wildcard) | Audio-driven avatar | `audio_url`, `image_url` | `result` (video) | Red |
+| **Kling Avatar Pro** | `custommodelV2` (wildcard) | Avatar video | `image_url`, `audio_url`, `prompt` | `result` (video) | Red |
 | **Kling Element** | `kling_element` | Element for Kling | 1 frontal + 3 ref images | `result` (kling-element) | Black |
 | **Video Downscale** | `custommodelV2` (wildcard) | Downscale video for LLM QA | `video_url` (video) | `video` (video) | Red |
+| **Topaz Image Upscale** | `custommodelV2` (topaz_image_upscale) | Upscale image to 4K | `image_url` (image) | `result` (image) | Red |
+| **Topaz Sharpen** | `custommodelV2` (topaz_image_sharpen) | Sharpen/deblur image | `image` (image) | `result` (image) | Red |
+| **Topaz Video Upscale** | `custommodelV2` (wildcard) | Upscale video to 4K | `video` (video) | `video` (video) | Red |
+| **Magnific Skin** | `custommodelV2` (wildcard) | AI skin retouch | `image` (image) | `result` (image) | Red |
+| **Magnific Upscale** | `custommodelV2` (wildcard) | AI creative upscale | `image`, `prompt` | `result` (image) | Red |
 | **Array** | `array` | Split text or static list | `text` (text) | `array` (array) | Green |
 | **List Selector** | `muxv2` | Pick one or iterate all | `options` (array) | `option` (text) | Green |
 | **Group** | `custom_group` | Visual container | — | — | Grey |
@@ -187,9 +203,23 @@ def make_edge(source_id, target_id, source_handle, target_handle, src_color, tgt
 | Concatenator | `prompt` | `prompt1`, `prompt2`... |
 | Router | `out` | `in` |
 | LLM | `text` | `prompt`, `system_prompt`, `image` |
-| NB Pro / Flux | `result` | `prompt`, `image_1` |
+| NB Pro / NB 2 / Flux / Seedream | `result` | `prompt`, `image_1` |
+| Flux Ultra | `result` | `prompt`, `image_prompt` |
+| Higgsfield Image | `result` | `prompt`, `image_reference` |
+| Imagen 4 | `result` | `prompt`, `negative_prompt` |
 | Kling | `video` | `prompt`, `image`, `end_image_url`, `negative_prompt`, `element_1`... |
+| Veo 3.1 | `result` | `prompt`, `negative_prompt` |
+| Wan 2.7 | `video` | `prompt`, `image_url`, `end_image_url`, `audio_url`, `negative_prompt` |
+| LTX 2 | `video` | `prompt`, `image_uri` |
+| Higgsfield Video | `video` | `prompt`, `image` |
+| Omnihuman V1.5 | `result` | `audio_url`, `image_url` |
+| Kling Avatar Pro | `result` | `image_url`, `audio_url`, `prompt` |
 | Kling Element | `result` | `frontal_image_url`, `reference_image_url1`...`3` |
+| Topaz Image Upscale | `result` | `image_url` |
+| Topaz Sharpen | `result` | `image` |
+| Topaz Video Upscale | `video` | `video` |
+| Magnific Skin | `result` | `image` |
+| Magnific Upscale | `result` | `image`, `prompt` |
 | Array | `array` | `text` |
 | List Selector | `option` | `options` |
 

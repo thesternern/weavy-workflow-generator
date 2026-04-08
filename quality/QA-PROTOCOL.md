@@ -29,8 +29,22 @@ Handle names must match the expected handles for each node type:
 | Concat | `prompt` |
 | Router | `out` / `in` |
 | LLM | `text` / `prompt` / `system_prompt` / `image` |
-| NB / Flux | `result` / `prompt` / `image_1` |
+| NB Pro / NB 2 / Flux / Seedream | `result` / `prompt` / `image_1` |
+| Flux Ultra | `result` / `prompt` / `image_prompt` |
+| Higgsfield Image | `result` / `prompt` / `image_reference` |
+| Imagen 4 | `result` / `prompt` / `negative_prompt` |
 | Kling | `video` / `prompt` / `image` / `end_image_url` / `negative_prompt` / `element_N` |
+| Veo 3.1 | `result` / `prompt` / `negative_prompt` |
+| Wan 2.7 | `video` / `prompt` / `image_url` / `end_image_url` / `audio_url` / `negative_prompt` |
+| LTX 2 | `video` / `prompt` / `image_uri` |
+| Higgsfield Video | `video` / `prompt` / `image` |
+| Omnihuman V1.5 | `result` / `audio_url` / `image_url` |
+| Kling Avatar Pro | `result` / `image_url` / `audio_url` / `prompt` |
+| Topaz Image Upscale | `result` / `image_url` |
+| Topaz Sharpen | `result` / `image` |
+| Topaz Video Upscale | `video` / `video` (input) |
+| Magnific Skin | `result` / `image` |
+| Magnific Upscale | `result` / `image` / `prompt` |
 | Array | `array` / `text` |
 | Selector | `option` / `options` |
 
@@ -45,7 +59,7 @@ Handle names must match the expected handles for each node type:
 
 ### Feedback Loops
 - [ ] Every image model output node has a Pattern N (Image Feedback Loop) connected
-- [ ] Every video model output node (Kling, Wan, Veo, LTX, Higgsfield) has a Pattern Q (Video Feedback Loop) connected — audio-driven avatars (Omnihuman, Kling Avatar Pro) are exempt
+- [ ] Every video model output node (Kling, Wan, Veo, LTX, Higgsfield Video) has a Pattern Q (Video Feedback Loop) connected — audio-driven avatars (Omnihuman, Kling Avatar Pro) are exempt
 - [ ] Feedback loops include: original brief Text, user feedback Text, Concat, Refiner LLM with system prompt, and the output model
 
 ### Prompt Content

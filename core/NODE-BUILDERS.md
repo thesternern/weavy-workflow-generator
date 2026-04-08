@@ -1662,9 +1662,9 @@ Generates the nodes and edges for Pattern Q (Video Feedback Loop). Works with an
 | Model | Has first frame? | Has negative prompt? | Image input handle | Neg prompt handle | Builder |
 |-------|-------------------|----------------------|--------------------|-------------------|---------|
 | `kling` | Yes | Yes | `image` | `negative_prompt` | `make_kling_node()` |
-| `wan` | Yes | Yes | `image` | `negative_prompt` | `make_wan_node()` |
+| `wan` | Yes | Yes | `image_url` | `negative_prompt` | `make_wan_node()` |
 | `veo3` | No | Yes | — | `negative_prompt` | `make_veo3_node()` |
-| `ltx2` | Optional | No | `first_frame_image` | — | `make_ltx2_node()` |
+| `ltx2` | Optional | No | `image_uri` | — | `make_ltx2_node()` |
 | `higgsfield_video` | Yes | No | `image` | — | `make_higgsfield_video_node()` |
 
 ```python
@@ -1696,7 +1696,8 @@ def build_video_feedback_loop(first_frame_id, first_frame_output, first_frame_ty
     # Model capability flags
     HAS_NEG_PROMPT = video_model in ("kling", "wan", "veo3")
     HAS_FIRST_FRAME = video_model != "veo3"  # veo3 is text-to-video only
-    IMAGE_INPUT_HANDLE = "first_frame_image" if video_model == "ltx2" else "image"
+    IMAGE_HANDLE_MAP = {"kling": "image", "wan": "image_url", "ltx2": "image_uri", "higgsfield_video": "image"}
+    IMAGE_INPUT_HANDLE = IMAGE_HANDLE_MAP.get(video_model)
     
     ids = {
         "motion_brief": uid(),

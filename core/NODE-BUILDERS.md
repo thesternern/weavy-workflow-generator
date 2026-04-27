@@ -836,6 +836,235 @@ def make_veo3_node(node_id, name, prompt_ref, neg_prompt_ref, x, y,
     }
 ```
 
+### SEEDANCE 2.0 (image-to-video)
+`bytedance/seedance-2.0/image-to-video` — 460 x 617 — Wildcard (predefined) — `isModel: true`
+
+**Default video model.** Animate a still image with native audio, optional last-frame interpolation. Output handle is `result` (not `video`). Use this endpoint when conditioning is one image with optional last frame; use `make_seedance_ref_node()` when you need multi-modal references / video editing / video extension.
+
+```python
+def make_seedance_i2v_node(node_id, name, prompt_ref, image_ref, end_image_ref, x, y,
+                            model="Standard", duration="5", resolution="720p",
+                            aspect_ratio="auto", generate_audio=True):
+    inputs = [
+        [{"id": "prompt", "title": "Prompt",
+          "description": "The text prompt describing the desired motion and action for the video.",
+          "validTypes": ["text"], "required": True}, prompt_ref],
+        [{"id": "image_url", "title": "First Image",
+          "description": "The URL of the starting frame image to animate. Supported formats: JPEG, PNG, WebP. Max 30 MB.",
+          "validTypes": ["image"], "required": False}, image_ref],
+        [{"id": "end_image_url", "title": "End Image Url",
+          "description": "The URL of the image to use as the last frame of the video. When provided, the generated video will transition from the starting image to this ending image. Supported formats: JPEG, PNG, WebP. Max 30 MB.",
+          "validTypes": ["image"], "required": False}, end_image_ref],
+    ]
+    input_handles = {
+        "prompt": {"id": uid(), "type": "text", "label": "prompt", "format": "text", "required": True,
+                   "description": "The text prompt describing the desired motion and action for the video."},
+        "image_url": {"id": uid(), "type": "image", "label": "first_frame", "format": "text", "required": False,
+                      "description": "The URL of the starting frame image to animate. Supported formats: JPEG, PNG, WebP. Max 30 MB."},
+        "end_image_url": {"id": uid(), "type": "image", "label": "Last Frame", "format": "text", "required": False,
+                          "description": "The URL of the image to use as the last frame of the video. When provided, the generated video will transition from the starting image to this ending image. Supported formats: JPEG, PNG, WebP. Max 30 MB."},
+    }
+    parameters = [
+        [{"id": "model", "title": "Model type", "description": "Model to run",
+          "constraint": {"type": "enum", "options": ["Standard","Fast"]},
+          "defaultValue": {"type": "string", "value": "Standard"}},
+         {"type": "value", "data": {"type": "string", "value": model}}],
+        [{"id": "duration", "title": "Duration",
+          "description": "Duration of the video in seconds. Supports 4 to 15 seconds",
+          "constraint": {"type": "enum", "options": ["4","5","6","7","8","9","10","11","12","13","14","15"]},
+          "defaultValue": {"type": "string", "value": "5"}},
+         {"type": "value", "data": {"type": "string", "value": duration}}],
+        [{"id": "resolution", "title": "Resolution",
+          "description": "Video resolution - 480p for faster generation, 720p for balance.",
+          "constraint": {"type": "enum", "options": ["480p","720p","1080p"]},
+          "defaultValue": {"type": "string", "value": "720p"}},
+         {"type": "value", "data": {"type": "string", "value": resolution}}],
+        [{"id": "aspect_ratio", "title": "Aspect Ratio",
+          "description": "The aspect ratio of the generated video. Use 16:9 for landscape, 9:16 for portrait/vertical, 1:1 for square, 21:9 for ultrawide cinematic, or auto to infer from the input image.",
+          "constraint": {"type": "enum", "options": ["auto","21:9","16:9","4:3","1:1","3:4","9:16"]},
+          "defaultValue": {"type": "string", "value": "auto"}},
+         {"type": "value", "data": {"type": "string", "value": aspect_ratio}}],
+        [{"id": "generate_audio", "title": "Generate Audio",
+          "description": "Whether to generate synchronized audio for the video, including sound effects, ambient sounds, and lip-synced speech. The cost of video generation is the same regardless of whether audio is generated or not.",
+          "constraint": {"type": "boolean"},
+          "defaultValue": {"type": "boolean", "value": True}},
+         {"type": "value", "data": {"type": "boolean", "value": generate_audio}}],
+        [{"id": "seed", "title": "Seed",
+          "description": "Seed value for random number generator. Uncheck for reproducible results.",
+          "constraint": {"type": "seed"},
+          "defaultValue": {"type": "seed", "value": {"seed": 1, "isRandom": False}}},
+         {"type": "value", "data": {"type": "seed", "value": {"seed": 0, "isRandom": True}}}],
+    ]
+    outputs = [{"id": "result", "title": "result", "description": "The video result", "dataType": "video"}]
+    description = "ByteDance's most advanced video generation model. Cinematic output with native audio, real-world physics, and director-level camera control. Accepts text, image, audio, and video inputs."
+    kind_data = {
+        "type": "wildcard",
+        "model": {"type": "predefined",
+                  "name": "bytedance/seedance-2.0/image-to-video",
+                  "version": "bytedance/seedance-2.0/image-to-video",
+                  "service": "fal_imported",
+                  "description": description},
+        "inputs": inputs, "parameters": parameters, "outputs": outputs
+    }
+    return {
+        "id": node_id, "dragHandle": ".node-header", "owner": None, "type": "custommodelV2",
+        "visibility": "private", "isModel": True,
+        "data": {
+            "handles": {"input": input_handles,
+                        "output": {"result": {"id": uid(), "type": "video", "label": "result",
+                                              "format": "uri", "description": "The video result"}}},
+            "name": name, "description": description, "color": "Red",
+            "label": None,
+            "menu": {"icon": "EmojiObjectsIcon", "isModel": True, "displayName": "Seedance 2.0"},
+            "model": {"name": "bytedance/seedance-2.0/image-to-video",
+                      "service": "fal_imported",
+                      "version": "bytedance/seedance-2.0/image-to-video"},
+            "params": {"seed": {"seed": 0, "isRandom": True}, "model": model, "duration": duration,
+                       "resolution": resolution, "aspect_ratio": aspect_ratio, "generate_audio": generate_audio},
+            "schema": {
+                "seed": {"type": "seed", "order": 10, "title": "Seed", "required": False,
+                         "description": "Seed value for random number generator. Uncheck for reproducible results."},
+                "model": {"type": "enum", "order": 0, "title": "Model type", "default": "Standard",
+                          "options": ["Standard","Fast"], "description": "Model to run"},
+                "prompt": {"type": "string", "title": "Prompt", "required": True,
+                           "description": "The text prompt describing the desired motion and action for the video."},
+                "duration": {"type": "enum", "title": "Duration", "default": "5",
+                             "options": ["4","5","6","7","8","9","10","11","12","13","14","15"], "required": False,
+                             "description": "Duration of the video in seconds. Supports 4 to 15 seconds"},
+                "image_url": {"type": "string", "title": "First Image", "required": False,
+                              "description": "The URL of the starting frame image to animate. Supported formats: JPEG, PNG, WebP. Max 30 MB."},
+                "resolution": {"type": "enum", "title": "Resolution", "default": "720p",
+                               "options": ["480p","720p","1080p"], "required": False,
+                               "description": "Video resolution - 480p for faster generation, 720p for balance."},
+                "aspect_ratio": {"type": "enum", "title": "Aspect Ratio", "default": "auto",
+                                 "options": ["auto","21:9","16:9","4:3","1:1","3:4","9:16"], "required": False,
+                                 "description": "The aspect ratio of the generated video. Use 16:9 for landscape, 9:16 for portrait/vertical, 1:1 for square, 21:9 for ultrawide cinematic, or auto to infer from the input image."},
+                "end_image_url": {"type": "string", "title": "End Image Url", "required": False,
+                                  "description": "The URL of the image to use as the last frame of the video. When provided, the generated video will transition from the starting image to this ending image. Supported formats: JPEG, PNG, WebP. Max 30 MB."},
+                "generate_audio": {"type": "boolean", "title": "Generate Audio", "default": True, "required": False,
+                                   "description": "Whether to generate synchronized audio for the video, including sound effects, ambient sounds, and lip-synced speech. The cost of video generation is the same regardless of whether audio is generated or not."}
+            },
+            "version": 3, "kind": kind_data,
+            "generations": [], "selectedIndex": 0, "cameraLocked": False,
+            "result": [], "output": {}, "selectedOutput": 0
+        },
+        "createdAt": NOW, "updatedAt": UPD, "locked": False,
+        "position": {"x": x, "y": y},
+        "selected": False, "width": 460, "height": 617
+    }
+```
+
+### SEEDANCE 2.0 REFERENCE (multi-modal)
+`bytedance/seedance-2.0/reference-to-video` — 460 x 617 — Wildcard (user_defined) — `isModel: true`
+
+Multi-modal reference-to-video. One polymorphic `reference_1` handle accepts image/video/audio/3D/text/number/boolean/seed/array/lora/kling-element. Per ByteDance docs, the model supports up to 9 images / 3 videos / 3 audio clips, addressed by tag (`@Image1`–`@Image9`, `@Video1`–`@Video3`, `@Audio1`–`@Audio3`) inside the prompt. **Single-handle limitation:** the schema exposes only one `reference_1` — verify how Weavy expands multi-reference workflows in production (likely a manual canvas duplication or array node upstream). Output handle is `result`. Note: `kind.model.type` is `user_defined` here, vs `predefined` on I2V — this is intentional per the registered schema.
+
+```python
+def make_seedance_ref_node(node_id, name, prompt_ref, reference_ref, x, y,
+                            model="Standard", duration="5", resolution="720p",
+                            aspect_ratio="auto", generate_audio=True):
+    inputs = [
+        [{"id": "prompt", "title": "Prompt",
+          "description": "The text prompt describing the desired motion and action for the video.",
+          "validTypes": ["text"], "required": True}, prompt_ref],
+        [{"id": "reference_1", "title": "reference_1",
+          "description": "Image/Video/Audio",
+          "validTypes": ["image","video","audio","3D","text","number","boolean","seed","array","lora","kling-element"],
+          "required": False}, reference_ref],
+    ]
+    input_handles = {
+        "prompt": {"id": uid(), "type": "text", "label": "prompt", "order": 0, "format": "text", "required": True,
+                   "description": "The text prompt used to generate the video."},
+        "reference_1": {"id": uid(), "type": "any", "label": "reference_1", "order": 1, "format": "uri",
+                        "required": False, "description": "Image/Video/Audio"},
+    }
+    parameters = [
+        [{"id": "model", "title": "Model type", "description": "Model to run",
+          "constraint": {"type": "enum", "options": ["Standard","Fast"]},
+          "defaultValue": {"type": "string", "value": "Standard"}},
+         {"type": "value", "data": {"type": "string", "value": model}}],
+        [{"id": "duration", "title": "Duration",
+          "description": "Duration of the video in seconds. Supports 4 to 15 seconds",
+          "constraint": {"type": "enum", "options": ["4","5","6","7","8","9","10","11","12","13","14","15"]},
+          "defaultValue": {"type": "string", "value": "5"}},
+         {"type": "value", "data": {"type": "string", "value": duration}}],
+        [{"id": "resolution", "title": "Resolution",
+          "description": "Video resolution - 480p for faster generation, 720p for balance.",
+          "constraint": {"type": "enum", "options": ["480p","720p","1080p"]},
+          "defaultValue": {"type": "string", "value": "720p"}},
+         {"type": "value", "data": {"type": "string", "value": resolution}}],
+        [{"id": "aspect_ratio", "title": "Aspect Ratio",
+          "description": "The aspect ratio of the generated video. Use 16:9 for landscape, 9:16 for portrait/vertical, 1:1 for square, 21:9 for ultrawide cinematic, or auto to infer from the input image.",
+          "constraint": {"type": "enum", "options": ["auto","21:9","16:9","4:3","1:1","3:4","9:16"]},
+          "defaultValue": {"type": "string", "value": "auto"}},
+         {"type": "value", "data": {"type": "string", "value": aspect_ratio}}],
+        [{"id": "generate_audio", "title": "Generate Audio",
+          "description": "Whether to generate synchronized audio for the video, including sound effects, ambient sounds, and lip-synced speech. The cost of video generation is the same regardless of whether audio is generated or not.",
+          "constraint": {"type": "boolean"},
+          "defaultValue": {"type": "boolean", "value": True}},
+         {"type": "value", "data": {"type": "boolean", "value": generate_audio}}],
+        [{"id": "seed", "title": "Seed",
+          "description": "Seed value for random number generator. Uncheck for reproducible results.",
+          "constraint": {"type": "seed"},
+          "defaultValue": {"type": "seed", "value": {"seed": 1, "isRandom": False}}},
+         {"type": "value", "data": {"type": "seed", "value": {"seed": 0, "isRandom": True}}}],
+    ]
+    outputs = [{"id": "result", "title": "result", "description": "The video result", "dataType": "video"}]
+    description = "ByteDance's most advanced reference-to-video model. Generate video from up to 9 images, 3 videos, and 3 audio clips with native audio and cinematic camera control."
+    kind_data = {
+        "type": "wildcard",
+        "model": {"type": "user_defined",
+                  "name": "bytedance/seedance-2.0/reference-to-video",
+                  "version": "bytedance/seedance-2.0/reference-to-video",
+                  "service": "fal_imported",
+                  "description": "Fal.ai Model"},
+        "inputs": inputs, "parameters": parameters, "outputs": outputs
+    }
+    return {
+        "id": node_id, "dragHandle": ".node-header", "owner": None, "type": "custommodelV2",
+        "visibility": "private", "isModel": True,
+        "data": {
+            "handles": {"input": input_handles,
+                        "output": {"result": {"id": uid(), "type": "video", "label": "result",
+                                              "format": "uri", "description": "The video result"}}},
+            "name": name, "description": description, "color": "Red",
+            "label": None,
+            "menu": {"icon": "EmojiObjectsIcon", "isModel": True, "displayName": "Seedance 2.0 Reference"},
+            "model": {"name": "bytedance/seedance-2.0/reference-to-video",
+                      "service": "fal_imported",
+                      "version": "bytedance/seedance-2.0/reference-to-video"},
+            "params": {"seed": {"seed": 0, "isRandom": True}, "prompt": "", "model": model,
+                       "duration": duration, "resolution": resolution,
+                       "aspect_ratio": aspect_ratio, "generate_audio": generate_audio},
+            "schema": {
+                "seed": {"type": "seed", "order": 10, "title": "Seed", "required": False,
+                         "description": "Seed value for random number generator. Uncheck for reproducible results."},
+                "model": {"type": "enum", "order": 0, "title": "Model type", "default": "Standard",
+                          "options": ["Standard","Fast"], "description": "Model to run"},
+                "prompt": {"type": "string", "title": "Prompt", "required": True,
+                           "description": "The text prompt describing the desired motion and action for the video."},
+                "duration": {"type": "enum", "title": "Duration", "default": "5",
+                             "options": ["4","5","6","7","8","9","10","11","12","13","14","15"], "required": False,
+                             "description": "Duration of the video in seconds. Supports 4 to 15 seconds"},
+                "resolution": {"type": "enum", "title": "Resolution", "default": "720p",
+                               "options": ["480p","720p","1080p"], "required": False,
+                               "description": "Video resolution - 480p for faster generation, 720p for balance."},
+                "aspect_ratio": {"type": "enum", "title": "Aspect Ratio", "default": "auto",
+                                 "options": ["auto","21:9","16:9","4:3","1:1","3:4","9:16"], "required": False,
+                                 "description": "The aspect ratio of the generated video. Use 16:9 for landscape, 9:16 for portrait/vertical, 1:1 for square, 21:9 for ultrawide cinematic, or auto to infer from the input image."},
+                "generate_audio": {"type": "boolean", "title": "Generate Audio", "default": True, "required": False,
+                                   "description": "Whether to generate synchronized audio for the video, including sound effects, ambient sounds, and lip-synced speech. The cost of video generation is the same regardless of whether audio is generated or not."}
+            },
+            "version": 3, "kind": kind_data,
+            "generations": [], "selectedIndex": 0, "cameraLocked": False,
+            "result": [], "output": {}, "selectedOutput": 0
+        },
+        "createdAt": NOW, "updatedAt": UPD, "locked": False,
+        "position": {"x": x, "y": y},
+        "selected": False, "width": 460, "height": 617
+    }
+```
+
 ### WAN 2.7 VIDEO
 `fal-ai/wan/v2.7/image-to-video` — 460 x 617 — Wildcard — `isModel: true`
 

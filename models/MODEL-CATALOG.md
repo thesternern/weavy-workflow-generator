@@ -4,6 +4,17 @@ Experience-driven model selection guide for Weavy workflows. Model descriptions 
 
 **Rule: Read "Reality" and "Use Instead" fields when selecting models. Never trust "Claims" alone.**
 
+## Defaults
+
+These are the standing defaults. Use them unless the brief gives a compelling reason to diverge (specific capability gap, content-policy issue, budget ceiling, or a use case where the default is on the "Avoid for" list).
+
+| Domain | Default | When to diverge |
+|---|---|---|
+| **Image generation / editing** | **Nano Banana Pro** | Text-critical at 4K (NB2), pure photorealism with no humans/products (Flux 2 Pro), raw skin texture (Flux 1.1 Ultra raw mode), single-subject preset aesthetic (Higgsfield Image), tight budget (Seedream V5), pure T2I no editing (Imagen 4) |
+| **Video generation** | **Seedance 2.0** | Specific capability gap only — camera-motion-on-stills (Higgsfield Video), photorealistic face hero shots where Seedance falls short (Kling 3 Pro), longest-duration with first+last frame interpolation (Wan 2.7), fast preview-tier iteration (LTX 2). Veo 3.1 is no longer the audio default — Seedance has native audio-video. |
+
+When in doubt, pick the default. Divergence requires evidence, not aesthetic preference.
+
 ---
 
 ## Quick Decision Tree
@@ -12,12 +23,13 @@ Experience-driven model selection guide for Weavy workflows. Model descriptions 
 
 | You need... | Use this | Why |
 |---|---|---|
+| **Default — anything not explicitly listed below** | **Nano Banana Pro** | Standing default. Handles the broadest range of image work reliably. Diverge only when a row below specifically applies. |
 | Full-body humans, action poses, or hero product shots | Nano Banana Pro | Better proportions, accurate product rendering; connect reference image to image_1 when available |
 | High-volume production (cost-sensitive) | Nano Banana 2 | 50% cheaper than NB Pro, 40-50% faster, 4K capable |
 | Budget image gen ($0.035/img) | Seedream V5 Edit | 4-7x cheaper than NB Pro with solid quality |
 | Simple photorealistic scene (no humans or products to match) | Flux 2 Pro | Strong prompt adherence for landscapes, objects, abstract scenes |
 | Raw photorealism with natural imperfections | Flux 1.1 Pro Ultra (raw mode) | Organic skin texture, grain, imperfections that read as real |
-| Fashion / editorial / aesthetic social content | Higgsfield Image | 80+ style presets tuned by fashion professionals |
+| Simple single-subject fashion portrait with preset aesthetic | Higgsfield Image | 80+ style presets — BUT only for 1 person, simple composition. Fails on groups/complex scenes |
 | Single-shot natural scene with people (no editing needed) | Imagen 4 | Best human proportions/poses in pure text-to-image |
 | Text rendering in images | Nano Banana Pro | 94% accuracy; NB2 at 87% is runner-up |
 | Image editing / compositing with a reference | Nano Banana Pro | Excels at editing with reference image input |
@@ -29,16 +41,14 @@ Experience-driven model selection guide for Weavy workflows. Model descriptions 
 
 | You need... | Use this | Why |
 |---|---|---|
-| Image-to-video (faces) | Kling 3 Pro | Best photorealistic face quality |
-| Image-to-video (products/objects) | Kling 3 Pro | Wan 2.7 close second |
-| Text-to-video (cinematic) | Veo 3.1 | Kling 3 Pro runner-up |
-| Native audio in video | Veo 3.1 | Only option with built-in audio |
-| Camera motion on a still image | Higgsfield Video | 120+ motion presets, no competitor |
-| Maximum flexibility (all input modes) | Wan 2.7 | Text, image, first+last frame, audio, negative prompt |
-| Fast iteration / previews | LTX 2 | Significantly faster than others |
-| Longest duration | Wan 2.7 (15s) | LTX 2 runner-up (10s) |
-| Negative prompt control on video | Wan 2.7 | Kling has it too but Wan's is more effective |
-| Production reliability | Kling 3 Pro | Fewest retakes needed |
+| **Default — anything not explicitly listed below** | **Seedance 2.0** | Standing default. Multimodal (text/image/audio/video inputs), native audio-video joint generation, multi-shot storytelling, phoneme-level lip-sync in 8+ languages, up to 15s. #1 image-to-video-with-audio on Artificial Analysis benchmarks. Diverge only when a row below specifically applies. |
+| Image-to-video with native audio | Seedance 2.0 | Only model with true native audio-video joint generation (not post-processed) |
+| Multi-shot storytelling from a single prompt | Seedance 2.0 | Only model offering this in one pass |
+| Camera motion on a still image (subject frozen) | Higgsfield Video | 120+ motion presets, no competitor for pure 2.5D parallax |
+| Photorealistic face hero shots where Seedance underdelivers | Kling 3 Pro | Battle-tested face quality; verify Seedance falls short before diverging |
+| First+last frame interpolation | Wan 2.7 | Unique capability if Seedance's keyframe control is insufficient |
+| Fast preview / draft iteration | Seedance 2.0 Fast | Same capabilities as Standard, ~2x faster, ~half cost. Use LTX 2 only when its stylized / non-photoreal aesthetic is the goal. |
+| Negative prompt control on video | Wan 2.7 | Most effective negative prompting if Seedance's prompt control is insufficient |
 
 ### Avatar / Lip Sync
 
@@ -70,14 +80,28 @@ Experience-driven model selection guide for Weavy workflows. Model descriptions 
 
 ### Image Model Selection Logic (read this before choosing)
 
-1. **Is there a reference image anywhere in the workflow?** → Use NB Pro. Route the reference to NB Pro's `image_1` AND to the Art Director LLM. NB Pro performs best when it can see the visual target directly.
-2. **Does the subject involve full-body humans or specific products?** → Use NB Pro. Flux struggles with human proportions (produces squat/compressed bodies in action poses) and hallucinates details on products.
-3. **Is it a simple scene with no humans or product-matching requirements?** → Flux 2 Pro is fine. Its prompt adherence is strong for landscapes, objects, and abstract compositions.
-4. **Is it fashion/editorial with a specific aesthetic?** → Higgsfield Image. Style presets are the product.
-5. **Is it a single-shot scene with people, no editing needed?** → Imagen 4. Best human proportions in pure text-to-image.
-6. **Is budget the primary constraint?** → Seedream V5 Edit at $0.035/img is 4-7x cheaper than NB Pro.
-7. **Is volume the primary constraint?** → Nano Banana 2. 50% cheaper and faster than NB Pro with 4K.
-8. **When in doubt** → Default to NB Pro. It handles more use cases reliably than anything else.
+**Start from NB Pro.** It is the default. Only diverge if one of the conditions below is true *and* the divergence is actually worth it.
+
+1. **Default → Nano Banana Pro.** Handles editing, compositing, full-body humans, hero products, clothing-on-model, text rendering, and reference-image workflows better than alternatives. If a reference image exists anywhere in the workflow, route it to NB Pro's `image_1` AND to the Art Director LLM.
+2. **Diverge to Nano Banana 2** only if the brief requires 4K output OR cost/volume is the primary constraint AND text rendering accuracy is not critical (NB2 drops from 94% → 87% on text).
+3. **Diverge to Flux 2 Pro** only for simple scenes with no humans and no product-matching needs (landscapes, objects, abstract). Never for full-body humans or hero products.
+4. **Diverge to Flux 1.1 Ultra (raw mode)** only when raw, organic, unprocessed skin texture is the explicit goal — the "anti-AI-perfection" look.
+5. **Diverge to Higgsfield Image** only for single-subject fashion portraits where a specific preset aesthetic is the entire goal. Never for groups, complex scenes, or anything requiring prompt control.
+6. **Diverge to Imagen 4** only for pure text-to-image with people where no editing/iteration is needed and SynthID watermark is acceptable.
+7. **Diverge to Seedream V5 Edit** only when budget is the primary constraint ($0.035/img is 4-7x cheaper than NB Pro) OR for vague creative editing intent.
+8. **When in doubt → NB Pro.** Aesthetic preference for another model is not a compelling reason. The diverge conditions above are the bar.
+
+### Video Model Selection Logic (read this before choosing)
+
+**Start from Seedance 2.0.** It is the default. Only diverge if one of the conditions below is true *and* the divergence is actually worth it.
+
+1. **Default → Seedance 2.0.** Multimodal in / multimodal out: text, image, audio, video inputs in one model. Native audio-video joint generation (not bolted on). Multi-shot storytelling from a single prompt. Phoneme-level lip-sync in 8+ languages. Up to 15s duration. Currently #1 on Artificial Analysis for image-to-video-with-audio. Use it for general video, talking heads, narrative clips, and anything with native audio.
+2. **Diverge to Higgsfield Video** only when the brief is camera motion on a still image with the subject frozen (2.5D parallax) AND a specific motion preset matches the request. Seedance does not replicate Higgsfield's 120+ preset library.
+3. **Diverge to Kling 3 Pro** only when Seedance produces a face hero shot that fails QA AND the project demands Kling-grade photorealistic face quality. Verify the failure first — do not pre-empt.
+4. **Diverge to Wan 2.7** only when the workflow specifically needs first+last frame interpolation OR the most effective negative-prompt control on video. Wan's flexibility is the differentiator, not its quality.
+5. **Diverge to LTX 2** only when it beats Seedance 2.0 Fast on a specific axis (raw speed, non-photorealistic / stylized output, very-low-cost previews). Default to **Seedance 2.0 Fast** for draft iteration — same capabilities as Standard, ~2x faster, ~half cost — before reaching for LTX. Use LTX 2 only when its specific characteristics fit the brief.
+6. **Veo 3.1 is no longer the default for native audio.** Seedance 2.0's audio-video generation is native and superior. Veo's value is now narrow: cinematic text-to-video where its specific aesthetic is wanted and content policy is acceptable.
+7. **When in doubt → Seedance 2.0.** Aesthetic preference for another model is not a compelling reason. The diverge conditions above are the bar.
 
 ---
 
@@ -200,36 +224,43 @@ Experience-driven model selection guide for Weavy workflows. Model descriptions 
 **Category:** Image Gen
 **Builder:** `make_higgsfield_image_node()`
 **Claims:** "Higgsfield's image generation model"
-**Reality:** Fashion-focused image model built by a team with luxury fashion and brand photography backgrounds. The 80+ style presets are the core product -- one-click deployment of scene composition, color correction, and lens language. Solves the "looks good until you zoom in" problem with photorealistic skin, fabric, and lighting that avoids AI plasticity. Image reference works as style transfer (analyzes reference's style, lighting, composition and recreates with your subject), not img2img composition. Soul 2.0 delivers editorial-quality results specifically tuned for fashion and lifestyle aesthetics.
+**Reality:** Style-preset model that works ONLY for simple single-subject compositions. The 80+ style presets (2000s Cam, Indie Sleaze, Y2K, etc.) are the core product and handle photographic treatment automatically. However, the model fundamentally breaks when asked to generate complex scenes, multiple people, or chaotic environments. Tested in production with early 2000s club/party scenes: output was incoherent — distorted bodies, no recognizable faces, abstract noise instead of people, flash reflections overwhelming the image. Multiple independent reviewers confirm: "complex actions lead to chaos or artifacts" (3.6/10 motion quality), "80% of the time gives you back a shiny model look with generic prompts," and community feedback describes it as "basically a UI wrapped around someone else's model doing a worse job than the free stuff." The presets actively fight detailed prompts — enhance_prompt overrides careful prompt engineering even when set to false, and the model defaults to a synthetic fashion look rather than realistic imperfections.
+
+**STATUS: DO NOT USE for production workflows involving multi-person scenes, complex environments, or photorealistic humans requiring anatomical accuracy. Restrict to simple single-subject fashion/lifestyle shots where a specific preset aesthetic is the only goal.**
+
 **Best for:**
-- Fashion and editorial imagery (built for this)
-- Style-driven social media content (Y2K, Grunge, Indie Sleaze, etc.)
-- Lifestyle photography with specific aesthetic presets
-- Product photography with curated visual styles
-- When you need a specific photographic "look" without prompt engineering
+- Simple single-subject fashion portraits with a specific preset aesthetic
+- Style exploration and moodboarding (quick visual direction, not final output)
+- Social media content where a single centered subject wears the preset's "look"
+- Cases where you ONLY need one person, centered, clean background, preset-driven aesthetic
 
 **Avoid for:**
-- General-purpose text-to-image where full prompt control matters (presets dominate)
-- Complex multi-element scene composition
-- Image editing/compositing workflows (no editing mode)
-- Technical/product accuracy tasks
+- **Multi-person scenes of any kind** — faces distort, bodies merge, composition collapses
+- **Complex environments** — clubs, streets, parties, any scene with background detail and multiple elements
+- **Chaotic or candid compositions** — unposed, dynamic, asymmetric framing
+- **Photorealistic humans requiring anatomical accuracy** — hands, faces in groups, body proportions in action
+- **Any scene where prompt control matters more than preset aesthetic** — presets dominate and override
+- **Product placement or specific accessory rendering** — sunglasses, jewelry, branded items get distorted
+- **Production workflows where reliability matters** — high failure rate on non-trivial prompts
 
-**Use instead:** "For general-purpose image generation with full prompt control, use NB Pro or Flux. Higgsfield is a style-first model, not a general-purpose one."
+**Use instead:** "For any scene with 2+ people, complex environments, or photorealistic human subjects, use NB Pro (with reference image) or Flux 2 Pro (pure T2I). For group shots specifically, Imagen 4 has the best human proportions in pure T2I. Higgsfield should only be considered for simple single-subject fashion shots where the preset aesthetic is the primary goal."
 
 **Gotchas:**
 - **Native Weavy integration, NOT a fal.ai import.** `data.model` must be `{"name": "higgsfield_t2i"}` only — no `service` or `version` fields. `data.kind.model` must be `{"type": "predefined", "name": "higgsfield_t2i", "description": "..."}` — no `version` or `service`. Adding `service: "fal_imported"` triggers fal.ai app ID validation which rejects the model name.
-- Style presets are the product -- without them it's a standard generator. Always pick a style. 80+ presets available (see builder for full list).
-- `enhance_prompt` may override carefully crafted prompts -- test with false for precise control
+- **Fails catastrophically on multi-person scenes.** Not "produces lower quality" — produces unusable abstract noise. This is a hard constraint, not a quality tradeoff.
+- **Presets override prompt control even with enhance_prompt=false.** The model has a strong prior toward its internal aesthetic that detailed prompts cannot fully override.
+- **80% synthetic look with generic prompts.** When given character descriptions without extremely specific anti-AI language, defaults to a "shiny model" appearance that reads as obviously AI-generated.
+- **Sunglasses and accessories distort.** Confirmed in both production testing and community reports — eyewear is a particular failure mode.
+- Style presets are the product -- without them it's a standard generator. 80+ presets available (see builder for full list).
 - `image_reference` is style transfer, not composition blending. It copies the aesthetic, not the layout.
-- `style_strength` at 1.0 (default) applies full preset. Dial back to 0.5-0.7 for subtler effects.
 - `style_strength` constraint type is `float_with_limits`, not `number` — differs from other models.
-- Output is always image, no video output despite Higgsfield also having a video model.
 
-**Optimal params:**
-- Style: Choose based on brief aesthetic. Notable production presets: `Realistic`, `FashionShow`, `90's Editorial`, `Quiet luxury`, `Tokyo Streetstyle`, `2000s Cam`, `Indie sleaze`, `Overexposed`
-- Style strength: `1.0` for full preset commitment, `0.5-0.7` for blend with prompt direction
-- enhance_prompt: `true` for casual use, `false` when prompt precision matters
+**Optimal params (when used within its narrow valid use case):**
+- Style: Single-subject fashion shots only. Notable presets: `Realistic`, `FashionShow`, `90's Editorial`, `Quiet luxury`, `Tokyo Streetstyle`
+- Style strength: `1.0` for full preset commitment, `0.5-0.7` for subtler blend
+- enhance_prompt: `false` always in Weavy workflows — prompt precision is critical
 - Resolution: `1696x960` (default) for landscape, `960x1696` for portrait, `1536x1536` for square
+- **Never use for batch generation via iterator** — the failure rate is too high for unattended batch runs
 
 ---
 
@@ -346,6 +377,136 @@ Experience-driven model selection guide for Weavy workflows. Model descriptions 
 
 ---
 
+### Seedance 2.0
+
+**Standing default for all video work as of April 2026.** Two endpoints — both share parameters; choose based on what's driving the generation.
+
+#### When to use which endpoint
+
+| Use Case | Endpoint | Why |
+|---|---|---|
+| Animate a still image with synchronized audio | **I2V** | Typed `image_url` first-frame is the cleanest path; optional `end_image_url` for keyframed transitions |
+| First+last frame interpolation | **I2V** | Dedicated last-frame handle (replaces Wan 2.7's old advantage here) |
+| Single-image driver, no other refs needed | **I2V** | Simpler graph; the typed handle prevents mis-routing |
+| Mix multiple images, videos, or audio clips as conditioning | **Reference** | Up to 9 images / 3 videos / 3 audio clips, tagged in the prompt |
+| Style transfer (style from one image, identity from another) | **Reference** | Tag-based attribution (`@Image1` for character, `@Image2` for style, `@Video1` for camera) |
+| Video editing (modify an existing clip while preserving motion/camera) | **Reference** | Pass a video to `reference_1` and describe the change in the prompt |
+| Video extension (continue an existing clip) | **Reference** | Same input pattern; describe what happens next in the prompt |
+| Chain Kling Elements output into video | **Reference** | `reference_1` accepts `kling-element` type directly |
+| Camera-motion-from-video (use a reference video purely for its camera moves) | **Reference** | Tag `@Video1 for camera movement style` in the prompt |
+| Lip-sync to a specific audio clip | **Reference** | Pass audio to a reference; tag `@Audio1 for lip-synced dialogue` |
+
+**Decision shortcut:** If your only conditioning is one image (with optional last frame), use I2V. The moment you need to combine multiple modalities or do editing/extension, switch to Reference.
+
+#### Endpoint specs
+
+**`bytedance/seedance-2.0/image-to-video`** (service: `fal_imported`, kind.model.type: `predefined`)
+- Inputs: `prompt` (text, required) · `image_url` (image, "first_frame", optional) · `end_image_url` (image, "Last Frame", optional)
+- Cleanest for single-image driver with optional keyframed end
+
+**`bytedance/seedance-2.0/reference-to-video`** (service: `fal_imported`, kind.model.type: `user_defined`)
+- Inputs: `prompt` (text, required) · `reference_1` (polymorphic — image/video/audio/3D/text/number/boolean/seed/array/lora/kling-element, optional)
+- Description claims up to 9 images / 3 videos / 3 audio clips. The schema exposes one `reference_1` handle, but in production each reference asset is uploaded with an auto-tag (`@Image1`–`@Image9`, `@Video1`–`@Video3`, `@Audio1`–`@Audio3`) and addressed in the prompt by tag. **Open question:** how Weavy expands this in practice — likely the node clones additional reference handles when you add more inputs, or you connect an array node upstream. **Verify this on the first real Reference workflow you build and update this entry.**
+
+**Shared parameters (both endpoints):**
+- `model`: enum [Standard, Fast]
+- `duration`: enum string [`"4"`–`"15"`]
+- `resolution`: enum [480p, 720p, 1080p] (no 4K native — chain Topaz for 4K delivery)
+- `aspect_ratio`: enum [auto, 21:9, 16:9, 4:3, 1:1, 3:4, 9:16]
+- `generate_audio`: boolean (default true)
+- `seed`: seed object (`{seed: int, isRandom: bool}`)
+
+**Builders:** `make_seedance_i2v_node(node_id, name, prompt_ref, image_ref, end_image_ref, x, y, ...)` and `make_seedance_ref_node(node_id, name, prompt_ref, reference_ref, x, y, ...)` — defined in `core/NODE-BUILDERS.md`. Both take optional kwargs `model`, `duration`, `resolution`, `aspect_ratio`, `generate_audio` with sane defaults (Standard / "5" / 720p / auto / true). Reference variant's `reference_ref` is a single polymorphic input — verify Weavy's multi-reference expansion on first production use.
+
+#### Reality (research-grounded; update with production data)
+
+Released February 12, 2026; on fal.ai April 2026. Unified multimodal architecture (composition, motion, camera planning, audio in one pass — not stitched together). Currently #1 on Artificial Analysis for image-to-video-with-audio. Native audio-video joint generation is the headline differentiator — audio is co-generated, not bolted on, and lip-sync covers 8+ languages at phoneme level.
+
+**Where Seedance shines (per WaveSpeedAI, MagicHour, fal.ai guides):**
+- Complex physics, detailed person tracking, nuanced light behavior — fight scenes, fashion walks, product light studies, wide cinematic frames
+- Multi-shot storytelling from a single prompt (unique in the field)
+- Director-level camera control language in prompts
+- Multilingual lip-sync via the audio reference path
+
+**Where Seedance still falls short (per WaveSpeedAI Issues review and ImaGera 2026 review):**
+- **Detailed hand close-ups** (instruments, typing) — wide shots are fine; extreme close-ups of hands break down
+- **Multi-subject scenes with >2-3 independent action sequences** — success rate drops sharply
+- **Very fast motion** — objects can disappear or float when movement gets too fast
+- **On-screen text rendering** — inconsistent; add typography in post
+- **Native 4K** — not a strength; Kling 3 Pro is still ahead at 4K/60fps native
+- **Realistic-face content moderation** — was extremely aggressive after Disney/Paramount IP letters; partially relaxed by April 2026 but verify per platform
+- **Standard tier latency** — 60–120s for a 5s clip at Standard. Plan accordingly for batch runs.
+
+**Standard vs Fast:** Both have identical capabilities (same inputs, same lip-sync, same params). Fast is ~2x faster at ~half the cost (~$0.77 vs ~$1.21 per generation). Quality gap is narrowest on simple/vertical/single-subject scenes — for social-feed content at scale, Fast is the default. Quality gap widens on cinematic frames, complex physics, fashion walks. **Working rule:** use Fast for all drafts; switch to Standard only for the final keeper, and only when the brief is in Standard's strength zone (cinematic / complex physics / multi-shot).
+
+#### Best for
+
+- General video generation — this is the default; start here unless a row in the diverge logic above applies
+- Image-to-video with native audio (replaces Veo for audio-video) → I2V
+- First+last frame interpolation → I2V
+- Multi-modal conditioning (image + video + audio refs combined) → Reference
+- Style transfer with explicit attribution (`@Image1` identity / `@Image2` style / `@Video1` camera) → Reference
+- Video editing / extension → Reference
+- Pipelines where Kling Elements outputs feed into video (`reference_1` accepts `kling-element`) → Reference
+- Multilingual talking-head content (lip-sync via audio reference)
+- Any workflow where audio and video should feel co-authored, not synced after the fact
+
+#### Avoid for
+
+- Pure camera motion on stills with subject frozen — Higgsfield Video's 120+ presets are unmatched here
+- 4K-native delivery without an upscale step — caps at 1080p; chain Topaz Video Upscaler (Astra)
+- Extreme close-ups of hands performing detail tasks (instruments, typing) — known weakness
+- Scenes with 4+ subjects performing independent actions simultaneously
+- Very fast / chaotic action where objects need to remain coherent — physics breaks under speed
+- On-screen typography that needs to be precise — render text in post, not in-model
+- Brief is content-policy-adjacent for realistic-human work — verify regional moderation status before committing
+
+#### Use instead
+
+"For pure camera-motion-on-stills, use Higgsfield Video. For fast preview/draft iteration where speed beats quality, use LTX 2 (or Seedance 2.0 Fast at draft tier — often a better choice now). For 4K/60fps face hero shots that demand Kling-grade fidelity, use Kling 3 Pro. For workflows where Wan 2.7's negative-prompt control is the actual differentiator, use Wan. Veo 3.1 is no longer a default for native audio — Seedance does it better."
+
+#### Reference-endpoint prompt syntax (verify against Weavy's runtime)
+
+Per ByteDance / Dreamina / fal.ai docs, the Reference endpoint expects tag-based attribution in the prompt:
+
+```
+@Image1 as character face reference, @Image2 for environment lighting,
+@Video1 for camera movement style, @Audio1 as background music.
+[Then describe the scene/action.]
+```
+
+Tag pattern: `@Image1`–`@Image9`, `@Video1`–`@Video3`, `@Audio1`–`@Audio3`. Be specific about *what attribute* should be extracted from *which reference* — the model rewards explicit attribution and drifts when prompts are vague.
+
+**Open question for production verification:**
+- Does Weavy's single `reference_1` handle accept an array of assets (each becoming `@Image1`, `@Image2`, etc.), or does adding inputs auto-expand the node into `reference_2`, `reference_3`...? Determine this on first real Reference workflow and update this entry.
+
+#### Gotchas
+
+- **Output handle is `result`** (type `video`), not `video` like Wan and most other video models. Edge wiring downstream must reference `result`.
+- **Resolution caps at 1080p** on both endpoints — pair with Topaz Video Upscaler for 4K delivery.
+- **`generate_audio` defaults to true** — disable explicitly when the pipeline scores audio separately or downstream nodes don't expect an audio track.
+- `duration` is an **enum of strings** (`"4"`–`"15"`), not an integer. Pass strings in `params.duration`.
+- `aspect_ratio` default is `auto` — infers from input. Override only when reframing.
+- **`kind.model.type` differs**: `predefined` for I2V, `user_defined` for Reference. The builder must set this correctly per endpoint.
+- **`kind.type` is `wildcard`** on both (like Wan) — model identifier lives in `kind.model.name` and `kind.model.version`.
+- Reference endpoint's `reference_1` is **genuinely polymorphic** (`validTypes` includes image, video, audio, 3D, text, number, boolean, seed, array, lora, kling-element).
+- **Standard tier is slow** — 60–120s for a 5s clip. Use Fast for drafts; Standard only when its quality strengths matter.
+- Realistic-human content moderation was tightened post-Disney/Paramount letters; partially relaxed but **verify per platform** before committing client work.
+- Output is `video` on handle `result` — wire to a Video Downscale node before any LLM Quality Gate (same pattern as Kling).
+- 15s max per generation — for 60s+ narratives, plan multi-generation continuity (the Reference endpoint's video-extension capability is the right tool here).
+
+#### Optimal params
+
+- Model: **`Fast` for all drafts and most social-format work; `Standard` only for the final keeper on cinematic / complex-physics / multi-shot briefs.** Fast and Standard share capabilities; the gap narrows on simple scenes.
+- Duration: `5` is the sweet spot. Extend to 10–15s only when narrative needs it (cost and latency scale).
+- Resolution: `720p` for iteration, `1080p` for final (no higher native option).
+- Aspect ratio: `auto` when image/reference is provided; explicit only when reframing.
+- `generate_audio`: `true` for talking-head / narrative; `false` when scoring audio separately or downstream rejects audio tracks.
+- Seed: `isRandom: True` for exploration; lock for reproducible refinement.
+- Reference endpoint: write **explicit, attributed** prompts — `@Image1 for face`, `@Video1 for camera`, etc. Vague prompts cause drift.
+
+---
+
 ### Kling 3 Pro
 
 **Weavy ID:** `kling` (kind type)
@@ -362,7 +523,7 @@ Experience-driven model selection guide for Weavy workflows. Model descriptions 
 - Quick iteration (it is slow and expensive -- use Pattern M Quality Gate to avoid wasted runs)
 - Text-to-video without any image input (results are less controlled)
 
-**Use instead:** "For text-to-video with audio, use Veo 3.1. For camera motion on stills, use Higgsfield Video. For maximum flexibility, use Wan 2.7. For fast previews, use LTX 2."
+**Use instead:** "For general video and any audio-video work, use Seedance 2.0 (the default). For camera motion on stills, use Higgsfield Video. For maximum input-mode flexibility (first+last frame, negative prompt), use Wan 2.7. For fast previews, use LTX 2. Kling is now reserved for face hero shots where Seedance has demonstrably underdelivered."
 
 **Gotchas:**
 - Duration is an integer (3-15), but stored as a string in `params.duration` and integer in `kind.duration`.
@@ -389,7 +550,7 @@ Experience-driven model selection guide for Weavy workflows. Model descriptions 
 **Category:** Video Gen (text-to-video ONLY)
 **Builder:** `make_veo3_node()`
 **Claims:** "Sound on: Google's flagship Veo 3 text to video model, with audio"
-**Reality:** Text-to-video only (no image input). Native audio generation is the headline feature -- impressive for demos but not production-ready for all use cases. Video quality is strong for cinematic scenes, handles faces well. Auto_fix prompt rewriting is a major pain point -- alters creative intent. Content policy restrictions are the most aggressive of any video model -- blocks edgy/fashion/action content frequently. Standard vs Fast: Fast is noticeably lower quality. v3.1 is incremental improvement over v3.
+**Reality:** Text-to-video only (no image input). Native audio generation was the headline feature -- but Seedance 2.0 (Feb 2026) now offers native audio-video joint generation in a multimodal architecture, making Veo's audio advantage largely obsolete. Veo's remaining value is its specific cinematic look for safe corporate text-to-video. Auto_fix prompt rewriting is a major pain point -- alters creative intent. Content policy restrictions are the most aggressive of any video model -- blocks edgy/fashion/action content frequently. Standard vs Fast: Fast is noticeably lower quality. v3.1 is incremental improvement over v3. **No longer a default for audio video — diverge to Veo only when its specific aesthetic is wanted.**
 **Best for:**
 - Talking head / dialogue scenes (audio sync is the differentiator)
 - Cinematic establishing shots
@@ -401,7 +562,7 @@ Experience-driven model selection guide for Weavy workflows. Model descriptions 
 - Workflows needing image-to-video (no image input)
 - Precise prompt control (auto_fix rewrites your prompts)
 
-**Use instead:** "For image-to-video, use Kling 3 Pro. For maximum flexibility, use Wan 2.7. Veo's value is native audio on cinematic text-to-video."
+**Use instead:** "For general video and audio-video work, use Seedance 2.0 (the default — Veo's old audio advantage is now superseded). For image-to-video face hero shots that Seedance underdelivers on, use Kling 3 Pro. For maximum input-mode flexibility, use Wan 2.7. Veo's narrow remaining value is text-to-video where its specific cinematic look is the goal."
 
 **Gotchas:**
 - Text-to-video ONLY -- no image input at all
